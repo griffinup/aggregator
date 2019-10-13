@@ -1,4 +1,5 @@
 # aggregator
 
-./aggregator /Users/ene/testdata
-Result: /Users/ene/testdata/__aggregate.result
+RUN: ./aggregator /Users/ene/testdata
+
+OUTPUT: Result: /Users/ene/testdata/__aggregate.result
