@@ -54,7 +54,7 @@ func addVectorToFile(root string, name string, data Vector, fs afero.Fs) error {
 	fname := strings.TrimRight(root, "/") + "/temp/" + name + ".tmp"
 	_, eerr := fs.Stat(fname);
 
-	f, err := fs.OpenFile(fname, os.O_RDWR|os.O_CREATE, 0777)
+	f, err := fs.OpenFile(fname, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return err
 	}
