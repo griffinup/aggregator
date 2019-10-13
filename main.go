@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"unsafe"
+	"github.com/spf13/afero"
 )
 
 const numWorkers = 20
@@ -21,6 +22,7 @@ const workerBuffer int = 500000
 //Размер буффера менеджера. Аггрегируются данные от воркеров и при достижении размера свопит данные на диск.
 const mainBuffer int = 6000000
 
+var AppFs = afero.NewOsFs()
 
 //func PrintMemUsage() {
 //	var m runtime.MemStats
@@ -48,11 +50,11 @@ func (a Vector) Add(b Vector) Vector {
 }
 
 //Добавление данных по дате в файл
-func addVectorToFile(name string, data Vector) error {
-	fname := strings.TrimRight(os.Args[1], "/") + "/temp/" + name + ".tmp"
-	_, eerr := os.Stat(fname);
+func addVectorToFile(root string, name string, data Vector, fs afero.Fs) error {
+	fname := strings.TrimRight(root, "/") + "/temp/" + name + ".tmp"
+	_, eerr := fs.Stat(fname);
 
-	f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, 0777)
+	f, err := fs.OpenFile(fname, os.O_RDWR|os.O_CREATE, 0777)
 	if err != nil {
 		return err
 	}
@@ -131,13 +133,13 @@ func (c *Cache) Add(key string, value Vector) {
 	}
 }
 
-func (c *Cache) Store() {
+func (c *Cache) Store(root string) {
 	if !c.isGlobal {
 		return
 	}
 
 	for key, value := range c.data {
-		err := addVectorToFile(key, value)
+		err := addVectorToFile(root, key, value, AppFs)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -341,12 +343,12 @@ func AggregateAll(root string) (error) {
 		r.confirm <- struct{}{}
 
 		if mapInBytes(len(m.data)) > mainBuffer {
-			m.Store()
+			m.Store(root)
 			m.Clear()
 		}
 		//PrintMemUsage()
 	}
-	m.Store()
+	m.Store(root)
 
 	if err := <-errc; err != nil {
 		return err
@@ -363,6 +365,7 @@ func main() {
 		return
 	}
 	RemoveContents(path + "/temp")
+	os.Remove(path + "/__aggregate.result")
 
 	err = AggregateAll(path)
 	if err != nil {

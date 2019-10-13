@@ -1,8 +1,8 @@
 package main
 
 import (
-	"testing"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 var globalcache *Cache = &Cache{
@@ -31,5 +31,9 @@ func TestClear(t *testing.T) {
 	require.NotEqual(t, nonglobalcache, c, "should add correctly")
 	c.Clear()
 	require.Equal(t, nonglobalcache, c, "should clear correctly")
-
 }
+
+//func TestaddVectorToFile(t *testing.T) {
+//	var AppFs = afero.NewMemMapFs()
+
+//}
