@@ -25,3 +25,11 @@ func TestNewCache(t *testing.T) {
 	require.Equal(t, nonglobalcache, NewCache(false), "should create correctly")
 }
 
+func TestClear(t *testing.T) {
+	c := NewCache(false)
+	c.Add("test", Vector{1., 1., 1.})
+	require.NotEqual(t, nonglobalcache, c, "should add correctly")
+	c.Clear()
+	require.Equal(t, nonglobalcache, c, "should clear correctly")
+
+}
