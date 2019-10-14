@@ -152,10 +152,10 @@ func (c *Cache) Clear() {
 	c.data = map[string]Vector{}
 }
 
-var memstring string
-var memvector Vector
-
 func mapInBytes(maplen int) int {
+	var memstring string
+	var memvector Vector
+
 	return maplen * 8 + (maplen * 8 * (int)(unsafe.Sizeof(memstring))) + (maplen * 8 * (int)(unsafe.Sizeof(memvector)))
 }
 
