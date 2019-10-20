@@ -76,7 +76,6 @@ func aggUnMapper(key string, data []interface{}) string {
 	fields[0] = key
 	for k, d := range data {
 		fields[k+1] = strconv.FormatFloat(math.Round(d.(float64)*100)/100, 'f', -1, 64)
-		//fmt.Sprintf("%f", d)
 	}
 
 	return strings.Join(fields[:], delimiter)
