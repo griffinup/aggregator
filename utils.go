@@ -16,12 +16,12 @@ func createTempDir(path string, fs afero.Fs) error {
 	return nil
 }
 
-func makeClean(temppath string, resultpath string, fs afero.Fs) error {
-	err := removeContents(temppath, fs)
+func makeClean(temp string, result string, fs afero.Fs) error {
+	err := removeContents(temp, fs)
 	if err != nil {
 		return err
 	}
-	_ = os.Remove(resultpath)
+	_ = fs.Remove(result)
 
 	return nil
 }

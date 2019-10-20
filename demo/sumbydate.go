@@ -9,18 +9,15 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	//"github.com/pkg/profile"
 )
 
 func main() {
-	//defer profile.Start().Stop()
-
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	agg := aggregator.AggContainer{
 		PathToFiles: os.Args[1],
-		HeaderRow: "date; A; B; C",
-		FileExt: "cvs",
+		HeaderRow:   "date; A; B; C",
+		FileExt:     "cvs",
 	}
 
 	agg.SetMapper(aggMapper)
@@ -47,15 +44,24 @@ func aggMapper(row string) (string, []interface{}, error) {
 
 	s := strings.Split(row, delimiter)
 	if len(s) != fieldsCount {
-		return "", nil, errors.New("Bad size")
+		return "", nil, errors.New("Fields count mismatch")
 	}
 
 	var interfaceSlice = make([]interface{}, fieldsCount-1)
-	a, _ := strconv.ParseFloat(strings.TrimSpace(s[1]), 64)
+	a, err := strconv.ParseFloat(strings.TrimSpace(s[1]), 64)
+	if err != nil {
+		return "", nil, err
+	}
 	interfaceSlice[0] = a
-	b, _ := strconv.ParseFloat(strings.TrimSpace(s[2]), 64)
+	b, err := strconv.ParseFloat(strings.TrimSpace(s[2]), 64)
+	if err != nil {
+		return "", nil, err
+	}
 	interfaceSlice[1] = b
-	c, _ := strconv.ParseFloat(strings.TrimSpace(s[3]), 64)
+	c, err := strconv.ParseFloat(strings.TrimSpace(s[3]), 64)
+	if err != nil {
+		return "", nil, err
+	}
 	interfaceSlice[2] = c
 
 	return s[0], interfaceSlice, nil
@@ -75,9 +81,9 @@ func aggUnMapper(key string, data []interface{}) string {
 	return strings.Join(fields[:], delimiter)
 }
 
-func aggReducer(a, b []interface{}) ([]interface{}) {
+func aggReducer(a, b []interface{}) []interface{} {
 	for i, _ := range a {
-		sum:= a[i].(float64) + b[i].(float64)
+		sum := a[i].(float64) + b[i].(float64)
 		a[i] = sum
 	}
 	return a

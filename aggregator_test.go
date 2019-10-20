@@ -2,12 +2,13 @@ package aggregator
 
 import (
 	"errors"
-	"github.com/spf13/afero"
 	"math"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/spf13/afero"
 )
 
 var agg AggContainer

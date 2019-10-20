@@ -15,38 +15,44 @@ import (
 )
 
 type workerResult struct {
-	*Cache
+	*cache
 	confirm chan struct{}
 	err     error
 }
+
 type AggContainer struct {
-	PathToFiles string
-	FileExt     string
-	HeaderRow   string
-	ResultFile	string
+	PathToFiles string	//Required path to source files.
+	FileExt     string	//Optional extension of source files. By default will read all files.
+	HeaderRow   string	//Optional header row in file. If sets it will be skipped by worker and will be written in result file
+	ResultFile  string	//Path to file where results of aggregation will be placed. By defaults will be created in source dir.
 
-	Mapper func(row string) (string, []interface{}, error)
-	UnMapper func(key string, data []interface{}) string
-	Reducer func(a, b []interface{}) []interface{}
+	Mapper   func(row string) (string, []interface{}, error)	//Convert row from a file to slice.
+	UnMapper func(key string, data []interface{}) string		//Inverse transformation from slice to row
+	Reducer  func(a, b []interface{}) []interface{}				//Reduce function. Convert two slice to one
 
-	NumWorkers int
-	MainBufferSize int
+	NumWorkers       int
+	MainBufferSize   int
 	WorkerBufferSize int
 
-	Fs afero.Fs
+	Fs afero.Fs		//Filesystem switcher. afero.NewOsFs() - for work OR afero.NewMemMapFs() - virtual memory for testing
 }
 
-func (container *AggContainer) SetMapper (m func(row string) (string, []interface{}, error)) {
+//Convert row from a file to slice.
+func (container *AggContainer) SetMapper(m func(row string) (string, []interface{}, error)) {
 	container.Mapper = m
 }
 
-func (container *AggContainer) SetUnMapper (um func(key string, data []interface{}) string) {
+//Inverse transformation from slice to row
+func (container *AggContainer) SetUnMapper(um func(key string, data []interface{}) string) {
 	container.UnMapper = um
 }
-func (container *AggContainer) SetReducer (r func(a, b []interface{}) []interface{}) {
+
+//Reduce function. Convert two slice to one
+func (container *AggContainer) SetReducer(r func(a, b []interface{}) []interface{}) {
 	container.Reducer = r
 }
 
+//Checking for required parameters. Set defaults.
 func (container *AggContainer) Init() error {
 	if container.Fs == nil {
 		container.Fs = afero.NewOsFs()
@@ -86,6 +92,8 @@ func (container *AggContainer) Init() error {
 	return nil
 }
 
+//Aggregation launch. Starting (NumWorkers) workers which read files from source folder and aggregate into their cache.
+//When cache riches WorkerBufferSize, the data is dumped to the manager. The manager aggregates it and write to files.
 func (container *AggContainer) Start() error {
 	m := newCache(true)
 	done := make(chan struct{})
@@ -98,7 +106,7 @@ func (container *AggContainer) Start() error {
 	wg.Add(container.NumWorkers)
 	for i := 0; i < container.NumWorkers; i++ {
 		go func() {
-			container.WorkerUnit(done, paths, c)
+			container.workerUnit(done, paths, c)
 			wg.Done()
 		}()
 	}
@@ -109,7 +117,6 @@ func (container *AggContainer) Start() error {
 
 	for r := range c {
 		if r.err != nil {
-			//done <- struct{}{}
 			return r.err
 		}
 
@@ -156,7 +163,7 @@ func walkFiles(done <-chan struct{}, root string, ext string, fs afero.Fs) (<-ch
 				return nil
 			}
 
-			if ext != "" && filepath.Ext(path) != "." + ext {
+			if ext != "" && filepath.Ext(path) != "."+ext {
 				return nil
 			}
 
@@ -171,7 +178,7 @@ func walkFiles(done <-chan struct{}, root string, ext string, fs afero.Fs) (<-ch
 	return paths, errc
 }
 
-func (container *AggContainer) WorkerUnit(done <-chan struct{}, paths <-chan string, c chan<- workerResult) {
+func (container *AggContainer) workerUnit(done <-chan struct{}, paths <-chan string, c chan<- workerResult) {
 	wc := newCache(false)
 	confirm := make(chan struct{})
 

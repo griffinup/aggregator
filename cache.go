@@ -6,30 +6,30 @@ import (
 	"unsafe"
 )
 
-type Cache struct {
+type cache struct {
 	isGlobal bool
 	data     sync.Map
 }
 
-func newCache(isglobal bool) *Cache {
-	return &Cache{
+func newCache(isglobal bool) *cache {
+	return &cache{
 		isGlobal: isglobal,
 		data:     sync.Map{},
 	}
 }
 
-func (c *Cache) save(key string, value []interface{}) {
-		c.data.Store(key, value)
+func (c *cache) save(key string, value []interface{}) {
+	c.data.Store(key, value)
 }
 
-func (c *Cache) load(key string) ([]interface{}, bool)  {
+func (c *cache) load(key string) ([]interface{}, bool) {
 	if v, ok := c.data.Load(key); ok {
 		return v.([]interface{}), ok
 	}
 	return nil, false
 }
 
-func (c *Cache) dataLen() int {
+func (c *cache) dataLen() int {
 	counter := 0
 	c.data.Range(func(key interface{}, value interface{}) bool {
 		counter++
@@ -38,7 +38,7 @@ func (c *Cache) dataLen() int {
 	return counter
 }
 
-func (c *Cache) dump(ac *AggContainer) {
+func (c *cache) dump(ac *AggContainer) {
 	if !c.isGlobal {
 		return
 	}
@@ -52,13 +52,13 @@ func (c *Cache) dump(ac *AggContainer) {
 	})
 }
 
-func (c *Cache) clear() {
+func (c *cache) clear() {
 	c.data = sync.Map{}
 }
 
 func mapInBytes(maplen int) int {
-	var memstring string
-	var memvector interface{}
+	var memKey string
+	var memValue []interface{}
 
-	return maplen*8 + (maplen * 8 * (int)(unsafe.Sizeof(memstring))) + (maplen * 8 * (int)(unsafe.Sizeof(memvector)))
+	return maplen*8 + (maplen * 8 * (int)(unsafe.Sizeof(memKey))) + (maplen * 8 * (int)(unsafe.Sizeof(memValue)))
 }
