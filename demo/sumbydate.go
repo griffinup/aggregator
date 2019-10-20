@@ -1,7 +1,6 @@
 package main
 
 import (
-	"aggregator"
 	"errors"
 	"fmt"
 	"math"
@@ -9,6 +8,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/griffinup/aggregator"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 	agg := aggregator.AggContainer{
 		PathToFiles: os.Args[1],
 		HeaderRow:   "date; A; B; C",
-		FileExt:     "cvs",
+		FileExt:     "csv",
 	}
 
 	agg.SetMapper(aggMapper)
