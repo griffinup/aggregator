@@ -9,7 +9,7 @@ Create aggregator container:
     agg := aggregator.AggContainer{
     		PathToFiles: os.Args[1],
     		HeaderRow:   "date; A; B; C",
-    		FileExt:     "cvs",
+    		FileExt:     "csv",
     }
 ```
 Set your mapper and reducer functions:
