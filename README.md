@@ -23,7 +23,7 @@ Call Init() and Start()
     agg.Init()
     agg.Start()
 ```
-In output you will recieve path to file with aggregation results
+`agg.ResultFile` will contain path to file with aggregation results
 
 Example of usage at /demo/sumbydate.go
 
